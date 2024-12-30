@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const timeOffSchema = new mongoose.Schema({
+const timeOffMessageSchema = new mongoose.Schema({
   userId: {
     type: Number,
     required: true,
@@ -22,4 +22,4 @@ const timeOffSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("TimeOff", timeOffSchema);
+module.exports = mongoose.model("TimeOffMessage", timeOffMessageSchema);
