@@ -1,0 +1,114 @@
+name: Init Vault
+
+on:
+  push:
+    branches:
+      - init-vault-collector
+  workflow_dispatch:
+
+jobs:
+  send-notification-started:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Telegram Notification
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.GH_ACTION_TELEGRAM_GROUP_DEPLOYMENTS }}
+          token: ${{ secrets.GH_ACTION_TELEGRAM_BOT_TOKEN }}
+          format: markdown
+          disable_web_page_preview: true
+          message: |
+            *🚀 UrCheckin - Check TimeOff - Collector - Init Vault *  🏃‍♂️${{ github.run_number }}
+
+            *👤 Committer:* [${{ github.actor }}](https://github.com/${{ github.actor }})
+            *📝 Commit message:* ${{ github.event.commits[0].message }}
+            *📦 Repository:* ${{ github.repository }}
+            *🔍 See changes:* [View changes](https://github.com/${{ github.repository }}/commit/${{github.sha}})
+
+            Started 🚁️️️️️️🚁️️️️️️🚁️️️️️️🚁️️️️️️
+
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up kubectl
+        uses: azure/k8s-set-context@v1
+        with:
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+          version: "latest"
+
+      - name: Apply Kubernetes deployment
+        env:
+          API_ID: ${{ secrets.API_ID }}
+          API_HASH: ${{ secrets.API_HASH }}
+          SESSION_STRING: ${{ secrets.SESSION_STRING }}
+          TELEGRAM_TIME_OFF_GROUP_ID: ${{ secrets.TELEGRAM_TIME_OFF_GROUP_ID }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+        run: |
+          kubectl exec -n vault -i vault-0 -- vault kv put \
+            kv/urcheckin-check-timeoff-collector-dev \
+            API_ID="${API_ID}" \
+            API_HASH="${API_HASH}" \
+            SESSION_STRING="${SESSION_STRING}" \
+            TELEGRAM_TIME_OFF_GROUP_ID="${TELEGRAM_TIME_OFF_GROUP_ID}" \
+            MONGODB_URI="${MONGODB_URI}"
+
+          kubectl exec -n vault -i vault-0 -- vault policy write urcheckin-check-timeoff-collector-svc-policy - <<EOH
+          path "kv/data/urcheckin-check-timeoff-collector-dev" {
+            capabilities = ["read"]
+          }
+          EOH
+
+          kubectl exec -n vault -i vault-0 -- vault write auth/kubernetes/role/urcheckin-check-timeoff-collector-dev \
+            bound_service_account_names=urcheckin-check-timeoff-collector-dev-auth \
+            bound_service_account_namespaces=urcheckin-check-timeoff \
+            policies=urcheckin-check-timeoff-collector-svc-policy \
+            ttl=72h
+
+  send-notification-deploy-failed:
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: ${{ failure() && needs.deploy.result == 'failure' }}
+    steps:
+      - name: Send Telegram Notification
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.GH_ACTION_TELEGRAM_GROUP_DEPLOYMENTS }}
+          token: ${{ secrets.GH_ACTION_TELEGRAM_BOT_TOKEN }}
+          format: markdown
+          disable_web_page_preview: true
+          message: |
+            *❌ UrCheckin - Check TimeOff - Collector - Init Vault *  🏃‍♂️${{ github.run_number }}
+
+            *👤 Committer:* [${{ github.actor }}](https://github.com/${{ github.actor }})
+            *📝 Commit message:* ${{ github.event.commits[0].message }}
+            *📦 Repository:* ${{ github.repository }}
+            *🔍 See changes:* [View changes](https://github.com/${{ github.repository }}/commit/${{github.sha}})
+
+            Deploy Failed!!!
+            😐️️️️️️😐️️️️️️😐️️️️️️😐️️️️️️😐️️️️️️😐️️️️️️
+
+  send-notification-successful:
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: ${{ success() && needs.deploy.result == 'success' }}
+    steps:
+      - name: Send Telegram Notification
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.GH_ACTION_TELEGRAM_GROUP_DEPLOYMENTS }}
+          token: ${{ secrets.GH_ACTION_TELEGRAM_BOT_TOKEN }}
+          format: markdown
+          disable_web_page_preview: true
+          message: |
+            *🎉 UrCheckin - Check TimeOff - Collector - Init Vault *  🏃‍♂️${{ github.run_number }}
+
+            *👤 Committer:* [${{ github.actor }}](https://github.com/${{ github.actor }})
+            *📝 Commit message:* ${{ github.event.commits[0].message }}
+            *📦 Repository:* ${{ github.repository }}
+            *🔍 See changes:* [View changes](https://github.com/${{ github.repository }}/commit/${{github.sha}})
+
+            Successful
+            🚀️️️️️️🚀️️️️️️🚀️️️️️️🚀️️️️️️🚀️️️️️️🚀️️️️️️
