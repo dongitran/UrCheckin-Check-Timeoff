@@ -11,6 +11,7 @@
   "description": "",
   "dependencies": {
     "dotenv": "^16.4.7",
+    "mongoose": "^8.9.2",
     "telegram": "^2.26.16"
   }
 }

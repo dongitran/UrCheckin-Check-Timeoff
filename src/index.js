@@ -3,6 +3,8 @@ const { TelegramClient } = require("telegram");
 const { StringSession } = require("telegram/sessions/StringSession");
 const { NewMessage } = require("telegram/events");
 const readline = require("readline");
+const mongoose = require("mongoose");
+const TimeOff = require("./models/timeoff");
 
 const apiId = process.env.API_ID;
 const apiHash = process.env.API_HASH;
@@ -12,6 +14,11 @@ const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
 });
+
+mongoose
+  .connect(process.env.MONGODB_URI)
+  .then(() => console.log("Connected to MongoDB"))
+  .catch((err) => console.error("MongoDB connection error:", err));
 
 (async () => {
   const client = new TelegramClient(stringSession, Number(apiId), apiHash, {
@@ -34,14 +41,17 @@ const rl = readline.createInterface({
       const chat = await event.message.getChat();
       const sender = await message.getSender();
 
-      //console.log(String(chat?.id?.value),'String(chat?.id?.value)')
       if (String(chat?.id?.value) === process.env.TELEGRAM_TIME_OFF_GROUP_ID) {
-        console.log({
+        const timeOffData = {
           userId: Number(sender.id.value),
           username: sender.username,
           message: message.text,
-          currentDate: new Date().toISOString()
-        });
+          currentDate: new Date(),
+        };
+
+        const timeOff = new TimeOff(timeOffData);
+        await timeOff.save();
+        console.log("Saved to MongoDB:", timeOffData);
       }
     } catch (error) {
       console.error("Error:", error);
