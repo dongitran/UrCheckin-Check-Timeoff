@@ -1,4 +1,4 @@
-name: Deploy
+name: Deploy Collector
 
 on:
   push:

@@ -1,4 +1,4 @@
-name: Init Vault
+name: Init Vault Collector
 
 on:
   push:
