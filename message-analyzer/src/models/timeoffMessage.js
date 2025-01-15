@@ -16,10 +16,30 @@ const timeOffMessageSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  createdAt: {
-    type: Date,
-    default: Date.now,
+  analyzed: {
+    type: Boolean,
+    default: false,
   },
+  analyzedResult: [
+    {
+      date: String,
+      status: {
+        type: String,
+        enum: ["off", "remote"],
+      },
+      type: {
+        type: String,
+        enum: ["full-day", "morning", "afternoon"],
+      },
+    },
+  ],
+  analyzedAt: Date,
+  error: String,
+  tokenUsage: {
+    promptTokens: Number,
+    completionTokens: Number,
+    totalTokens: Number
+  }
 });
 
 module.exports = mongoose.model("TimeOffMessage", timeOffMessageSchema);

@@ -1,0 +1,132 @@
+name: Init Vault
+
+on:
+  push:
+    branches:
+      - init-vault-message-analyzer
+  workflow_dispatch:
+
+jobs:
+  send-notification-started:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Telegram Notification
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.GH_ACTION_TELEGRAM_GROUP_DEPLOYMENTS }}
+          token: ${{ secrets.GH_ACTION_TELEGRAM_BOT_TOKEN }}
+          format: markdown
+          disable_web_page_preview: true
+          message: |
+            *🚀 UrCheckin - Check TimeOff - Collector - Init Vault *  🏃‍♂️${{ github.run_number }}
+
+            *👤 Committer:* [${{ github.actor }}](https://github.com/${{ github.actor }})
+            *📝 Commit message:* ${{ github.event.commits[0].message }}
+            *📦 Repository:* ${{ github.repository }}
+            *🔍 See changes:* [View changes](https://github.com/${{ github.repository }}/commit/${{github.sha}})
+
+            Started 🚁️️️️️️🚁️️️️️️🚁️️️️️️🚁️️️️️️
+
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up kubectl
+        uses: azure/k8s-set-context@v1
+        with:
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+          version: "latest"
+
+      - name: Apply Kubernetes deployment
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          BATCH_SIZE: ${{ secrets.BATCH_SIZE }}
+          PROCESSING_INTERVAL: ${{ secrets.PROCESSING_INTERVAL }}
+          SYSTEM_PROMPT: ${{ secrets.SYSTEM_PROMPT }}
+          EXAMPLE_1: ${{ secrets.EXAMPLE_1 }}
+          EXAMPLE_2: ${{ secrets.EXAMPLE_2 }}
+          EXAMPLE_3: ${{ secrets.EXAMPLE_3 }}
+          EXAMPLE_4: ${{ secrets.EXAMPLE_4 }}
+          EXAMPLE_5: ${{ secrets.EXAMPLE_5 }}
+          EXAMPLE_6: ${{ secrets.EXAMPLE_6 }}
+          EXAMPLE_7: ${{ secrets.EXAMPLE_7 }}
+          EXAMPLE_8: ${{ secrets.EXAMPLE_8 }}
+          EXAMPLE_9: ${{ secrets.EXAMPLE_9 }}
+        run: |
+          kubectl exec -n vault -i vault-0 -- vault kv put \
+            kv/urcheckin-check-timeoff-message-analyzer-dev \
+            MONGODB_URI="${MONGODB_URI}" \
+            OPENAI_API_KEY="${OPENAI_API_KEY}" \
+            BATCH_SIZE="${BATCH_SIZE}" \
+            PROCESSING_INTERVAL="${PROCESSING_INTERVAL}" \
+            SYSTEM_PROMPT="${SYSTEM_PROMPT}" \
+            EXAMPLE_1="${EXAMPLE_1}" \
+            EXAMPLE_2="${EXAMPLE_2}" \
+            EXAMPLE_3="${EXAMPLE_3}" \
+            EXAMPLE_4="${EXAMPLE_4}" \
+            EXAMPLE_5="${EXAMPLE_5}" \
+            EXAMPLE_6="${EXAMPLE_6}" \
+            EXAMPLE_7="${EXAMPLE_7}" \
+            EXAMPLE_8="${EXAMPLE_8}" \
+            EXAMPLE_9="${EXAMPLE_9}"
+
+          kubectl exec -n vault -i vault-0 -- vault policy write urcheckin-check-timeoff-message-analyzer-svc-policy - <<EOH
+          path "kv/data/urcheckin-check-timeoff-message-analyzer-dev" {
+            capabilities = ["read"]
+          }
+          EOH
+
+          kubectl exec -n vault -i vault-0 -- vault write auth/kubernetes/role/urcheckin-check-timeoff-message-analyzer-dev \
+            bound_service_account_names=urcheckin-check-timeoff-message-analyzer-dev-auth \
+            bound_service_account_namespaces=urcheckin-check-timeoff \
+            policies=urcheckin-check-timeoff-message-analyzer-svc-policy \
+            ttl=72h
+
+  send-notification-deploy-failed:
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: ${{ failure() && needs.deploy.result == 'failure' }}
+    steps:
+      - name: Send Telegram Notification
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.GH_ACTION_TELEGRAM_GROUP_DEPLOYMENTS }}
+          token: ${{ secrets.GH_ACTION_TELEGRAM_BOT_TOKEN }}
+          format: markdown
+          disable_web_page_preview: true
+          message: |
+            *❌ UrCheckin - Check TimeOff - Collector - Init Vault *  🏃‍♂️${{ github.run_number }}
+
+            *👤 Committer:* [${{ github.actor }}](https://github.com/${{ github.actor }})
+            *📝 Commit message:* ${{ github.event.commits[0].message }}
+            *📦 Repository:* ${{ github.repository }}
+            *🔍 See changes:* [View changes](https://github.com/${{ github.repository }}/commit/${{github.sha}})
+
+            Deploy Failed!!!
+            😐️️️️️️😐️️️️️️😐️️️️️️😐️️️️️️😐️️️️️️😐️️️️️️
+
+  send-notification-successful:
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: ${{ success() && needs.deploy.result == 'success' }}
+    steps:
+      - name: Send Telegram Notification
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.GH_ACTION_TELEGRAM_GROUP_DEPLOYMENTS }}
+          token: ${{ secrets.GH_ACTION_TELEGRAM_BOT_TOKEN }}
+          format: markdown
+          disable_web_page_preview: true
+          message: |
+            *🎉 UrCheckin - Check TimeOff - Collector - Init Vault *  🏃‍♂️${{ github.run_number }}
+
+            *👤 Committer:* [${{ github.actor }}](https://github.com/${{ github.actor }})
+            *📝 Commit message:* ${{ github.event.commits[0].message }}
+            *📦 Repository:* ${{ github.repository }}
+            *🔍 See changes:* [View changes](https://github.com/${{ github.repository }}/commit/${{github.sha}})
+
+            Successful
+            🚀️️️️️️🚀️️️️️️🚀️️️️️️🚀️️️️️️🚀️️️️️️🚀️️️️️️

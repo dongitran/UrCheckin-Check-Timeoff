@@ -1,17 +1,17 @@
 {
-  "name": "urcheckin-check-timeoff",
+  "name": "urcheckin-message-analyzer",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
     "dotenv": "^16.4.7",
-    "mongoose": "^8.9.2",
-    "telegram": "^2.26.16"
+    "mongoose": "^8.9.5",
+    "openai": "^4.28.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
   }
 }
