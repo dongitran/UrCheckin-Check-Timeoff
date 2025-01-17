@@ -64,10 +64,10 @@ jobs:
 
       - name: Apply Kubernetes deployment
         run: |
-          kubectl apply -f ./deployment/namespace.yaml
-          kubectl apply -f ./deployment/service-account.yaml
-          sed -i 's/{latest}/${{ github.run_number }}/g' ./deployment/main.yaml
-          kubectl apply -f ./deployment/main.yaml --validate=false
+          kubectl apply -f ./collector/deployment/namespace.yaml
+          kubectl apply -f ./collector/deployment/service-account.yaml
+          sed -i 's/{latest}/${{ github.run_number }}/g' ./collector/deployment/main.yaml
+          kubectl apply -f ./collector/deployment/main.yaml --validate=false
 
   send-notification-build-failed:
     needs: build
