@@ -167,6 +167,7 @@ const rl = readline.createInterface({
           chatId: chatId,
           chatTitle: chat?.title,
           chatType: chat?.className,
+          metadata: chat,
           currentDate: new Date(),
         };
         await saveTelegramMessageWithRetry(messageData);
