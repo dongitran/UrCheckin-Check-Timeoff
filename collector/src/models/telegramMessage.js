@@ -26,6 +26,10 @@ const telegramMessageSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  metadata: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {}
+  },
   createdAt: {
     type: Date,
     default: Date.now,
