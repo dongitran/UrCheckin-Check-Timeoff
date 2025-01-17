@@ -1,9 +1,9 @@
-name: Init Vault Collector
+name: Init Vault Message Analyzer
 
 on:
   push:
     branches:
-      - init-vault-collector
+      - init-vault-message-analyzer
   workflow_dispatch:
 
 jobs:
@@ -41,30 +41,32 @@ jobs:
 
       - name: Apply Kubernetes deployment
         env:
-          API_ID: ${{ secrets.API_ID }}
-          API_HASH: ${{ secrets.API_HASH }}
-          SESSION_STRING: ${{ secrets.SESSION_STRING }}
-          TELEGRAM_TIME_OFF_GROUP_ID: ${{ secrets.TELEGRAM_TIME_OFF_GROUP_ID }}
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          BATCH_SIZE: ${{ secrets.BATCH_SIZE }}
+          PROCESSING_INTERVAL: ${{ secrets.PROCESSING_INTERVAL }}
+          SYSTEM_PROMPT_BASE64: ${{ secrets.SYSTEM_PROMPT_BASE64 }}
+          EXAMPLES_BASE64: ${{ secrets.EXAMPLES_BASE64 }}
         run: |
           kubectl exec -n vault -i vault-0 -- vault kv put \
-            kv/urcheckin-check-timeoff-collector-dev \
-            API_ID="${API_ID}" \
-            API_HASH="${API_HASH}" \
-            SESSION_STRING="${SESSION_STRING}" \
-            TELEGRAM_TIME_OFF_GROUP_ID="${TELEGRAM_TIME_OFF_GROUP_ID}" \
-            MONGODB_URI="${MONGODB_URI}"
+            kv/urcheckin-check-timeoff-message-analyzer-dev \
+            MONGODB_URI="${MONGODB_URI}" \
+            OPENAI_API_KEY="${OPENAI_API_KEY}" \
+            BATCH_SIZE="${BATCH_SIZE}" \
+            PROCESSING_INTERVAL="${PROCESSING_INTERVAL}" \
+            SYSTEM_PROMPT_BASE64="${SYSTEM_PROMPT_BASE64}" \
+            EXAMPLES_BASE64="${EXAMPLES_BASE64}"
 
-          kubectl exec -n vault -i vault-0 -- vault policy write urcheckin-check-timeoff-collector-svc-policy - <<EOH
-          path "kv/data/urcheckin-check-timeoff-collector-dev" {
+          kubectl exec -n vault -i vault-0 -- vault policy write urcheckin-check-timeoff-message-analyzer-svc-policy - <<EOH
+          path "kv/data/urcheckin-check-timeoff-message-analyzer-dev" {
             capabilities = ["read"]
           }
           EOH
 
-          kubectl exec -n vault -i vault-0 -- vault write auth/kubernetes/role/urcheckin-check-timeoff-collector-dev \
-            bound_service_account_names=urcheckin-check-timeoff-collector-dev-auth \
+          kubectl exec -n vault -i vault-0 -- vault write auth/kubernetes/role/urcheckin-check-timeoff-message-analyzer-dev \
+            bound_service_account_names=urcheckin-check-timeoff-message-analyzer-dev-auth \
             bound_service_account_namespaces=urcheckin-check-timeoff \
-            policies=urcheckin-check-timeoff-collector-svc-policy \
+            policies=urcheckin-check-timeoff-message-analyzer-svc-policy \
             ttl=72h
 
   send-notification-deploy-failed:
