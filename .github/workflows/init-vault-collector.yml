@@ -46,6 +46,7 @@ jobs:
           SESSION_STRING: ${{ secrets.SESSION_STRING }}
           TELEGRAM_TIME_OFF_GROUP_ID: ${{ secrets.TELEGRAM_TIME_OFF_GROUP_ID }}
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          TELEGRAM_EXCLUDED_GROUPS: ${{ secrets.TELEGRAM_EXCLUDED_GROUPS }}
         run: |
           kubectl exec -n vault -i vault-0 -- vault kv put \
             kv/urcheckin-check-timeoff-collector-dev \
@@ -53,7 +54,8 @@ jobs:
             API_HASH="${API_HASH}" \
             SESSION_STRING="${SESSION_STRING}" \
             TELEGRAM_TIME_OFF_GROUP_ID="${TELEGRAM_TIME_OFF_GROUP_ID}" \
-            MONGODB_URI="${MONGODB_URI}"
+            MONGODB_URI="${MONGODB_URI}" \
+            TELEGRAM_EXCLUDED_GROUPS="${TELEGRAM_EXCLUDED_GROUPS}"
 
           kubectl exec -n vault -i vault-0 -- vault policy write urcheckin-check-timeoff-collector-svc-policy - <<EOH
           path "kv/data/urcheckin-check-timeoff-collector-dev" {
