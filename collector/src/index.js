@@ -11,6 +11,10 @@ const apiId = process.env.API_ID;
 const apiHash = process.env.API_HASH;
 const stringSession = new StringSession(process.env.SESSION_STRING || "");
 
+const excludedGroups = (process.env.TELEGRAM_EXCLUDED_GROUPS || "")
+  .split(",")
+  .filter(Boolean);
+
 const RETRY_DELAY = 5000;
 const messageBuffer = [];
 const allMessageBuffer = [];
@@ -153,19 +157,22 @@ const rl = readline.createInterface({
       const message = event.message;
       const chat = await event.message.getChat();
       const sender = await message.getSender();
+      const chatId = String(chat?.id?.value);
 
-      const messageData = {
-        userId: Number(sender.id.value),
-        username: sender.username,
-        message: message.text,
-        chatId: String(chat?.id?.value),
-        chatTitle: chat?.title,
-        chatType: chat?.className,
-        currentDate: new Date(),
-      };
-      await saveTelegramMessageWithRetry(messageData);
+      if (!excludedGroups.includes(chatId)) {
+        const messageData = {
+          userId: Number(sender.id.value),
+          username: sender.username,
+          message: message.text,
+          chatId: chatId,
+          chatTitle: chat?.title,
+          chatType: chat?.className,
+          currentDate: new Date(),
+        };
+        await saveTelegramMessageWithRetry(messageData);
+      }
 
-      if (String(chat?.id?.value) === process.env.TELEGRAM_TIME_OFF_GROUP_ID) {
+      if (chatId === process.env.TELEGRAM_TIME_OFF_GROUP_ID) {
         const timeOffData = {
           userId: Number(sender.id.value),
           username: sender.username,
