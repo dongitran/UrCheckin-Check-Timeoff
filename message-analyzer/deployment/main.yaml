@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: urcheckin-check-timeoff-message-analyzer
+  namespace: urcheckin-check-timeoff
+  labels:
+    app: urcheckin-check-timeoff-message-analyzer
+spec:
+  serviceName: urcheckin-check-timeoff-message-analyzer
+  replicas: 1
+  selector:
+    matchLabels:
+      app: urcheckin-check-timeoff-message-analyzer
+  template:
+    metadata:
+      labels:
+        app: urcheckin-check-timeoff-message-analyzer
+      annotations:
+        vault.hashicorp.com/agent-inject: 'true'
+        vault.hashicorp.com/role: 'urcheckin-check-timeoff-message-analyzer-dev'
+        vault.hashicorp.com/agent-pre-populate-only: 'true'
+        vault.hashicorp.com/agent-inject-secret-env-config: 'kv/urcheckin-check-timeoff-message-analyzer-dev'
+        vault.hashicorp.com/agent-inject-template-env-config: |
+            {{ with secret "kv/urcheckin-check-timeoff-message-analyzer-dev" -}}
+              {{- range $key, $value := .Data.data }}
+                export {{ $key }}="{{ $value }}"
+              {{- end }}
+            {{- end }}
+    spec:
+      serviceAccountName: urcheckin-check-timeoff-message-analyzer-dev-auth
+      containers:
+        - name: urcheckin-check-timeoff-message-analyzer
+          image: ideavn/urcheckin-check-timeoff-message-analyzer:{latest}
+          resources:
+            limits:
+              cpu: 500m
+              memory: 600Mi
+            requests:
+              cpu: 50m
+              memory: 256Mi

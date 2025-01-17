@@ -1,10 +1,9 @@
-name: Init Vault Collector
+name: Deploy Collector
 
 on:
   push:
     branches:
-      - init-vault-collector
-  workflow_dispatch:
+      - deploy-collector
 
 jobs:
   send-notification-started:
@@ -18,7 +17,7 @@ jobs:
           format: markdown
           disable_web_page_preview: true
           message: |
-            *🚀 UrCheckin - Check TimeOff - Collector - Init Vault *  🏃‍♂️${{ github.run_number }}
+            *🚀 UrCheckin - Check TimeOff - Collector - Deploy * 🏃‍♂️${{ github.run_number }}
 
             *👤 Committer:* [${{ github.actor }}](https://github.com/${{ github.actor }})
             *📝 Commit message:* ${{ github.event.commits[0].message }}
@@ -27,7 +26,31 @@ jobs:
 
             Started 🚁️️️️️️🚁️️️️️️🚁️️️️️️🚁️️️️️️
 
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build image
+        run: |
+          docker buildx create --name builder --use
+          docker buildx inspect builder --bootstrap
+          docker buildx build -t ideavn/urcheckin-check-timeoff-collector:${{ github.run_number }} --push ./collector/.
+
   deploy:
+    needs: build
+    if: ${{ success() && needs.build.result == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -40,39 +63,16 @@ jobs:
           version: "latest"
 
       - name: Apply Kubernetes deployment
-        env:
-          API_ID: ${{ secrets.API_ID }}
-          API_HASH: ${{ secrets.API_HASH }}
-          SESSION_STRING: ${{ secrets.SESSION_STRING }}
-          TELEGRAM_TIME_OFF_GROUP_ID: ${{ secrets.TELEGRAM_TIME_OFF_GROUP_ID }}
-          MONGODB_URI: ${{ secrets.MONGODB_URI }}
-          TELEGRAM_EXCLUDED_GROUPS: ${{ secrets.TELEGRAM_EXCLUDED_GROUPS }}
         run: |
-          kubectl exec -n vault -i vault-0 -- vault kv put \
-            kv/urcheckin-check-timeoff-collector-dev \
-            API_ID="${API_ID}" \
-            API_HASH="${API_HASH}" \
-            SESSION_STRING="${SESSION_STRING}" \
-            TELEGRAM_TIME_OFF_GROUP_ID="${TELEGRAM_TIME_OFF_GROUP_ID}" \
-            MONGODB_URI="${MONGODB_URI}" \
-            TELEGRAM_EXCLUDED_GROUPS="${TELEGRAM_EXCLUDED_GROUPS}"
+          kubectl apply -f ./collector/deployment/namespace.yaml
+          kubectl apply -f ./collector/deployment/service-account.yaml
+          sed -i 's/{latest}/${{ github.run_number }}/g' ./collector/deployment/main.yaml
+          kubectl apply -f ./collector/deployment/main.yaml --validate=false
 
-          kubectl exec -n vault -i vault-0 -- vault policy write urcheckin-check-timeoff-collector-svc-policy - <<EOH
-          path "kv/data/urcheckin-check-timeoff-collector-dev" {
-            capabilities = ["read"]
-          }
-          EOH
-
-          kubectl exec -n vault -i vault-0 -- vault write auth/kubernetes/role/urcheckin-check-timeoff-collector-dev \
-            bound_service_account_names=urcheckin-check-timeoff-collector-dev-auth \
-            bound_service_account_namespaces=urcheckin-check-timeoff \
-            policies=urcheckin-check-timeoff-collector-svc-policy \
-            ttl=72h
-
-  send-notification-deploy-failed:
-    needs: deploy
+  send-notification-build-failed:
+    needs: build
     runs-on: ubuntu-latest
-    if: ${{ failure() && needs.deploy.result == 'failure' }}
+    if: ${{ failure() && needs.build.result == 'failure' }}
     steps:
       - name: Send Telegram Notification
         uses: appleboy/telegram-action@master
@@ -82,14 +82,14 @@ jobs:
           format: markdown
           disable_web_page_preview: true
           message: |
-            *❌ UrCheckin - Check TimeOff - Collector - Init Vault *  🏃‍♂️${{ github.run_number }}
+            *❌ UrCheckin - Check TimeOff - Collector - Deploy * 🏃‍♂️${{ github.run_number }}
 
             *👤 Committer:* [${{ github.actor }}](https://github.com/${{ github.actor }})
             *📝 Commit message:* ${{ github.event.commits[0].message }}
             *📦 Repository:* ${{ github.repository }}
             *🔍 See changes:* [View changes](https://github.com/${{ github.repository }}/commit/${{github.sha}})
 
-            Deploy Failed!!!
+            *Build Failed*
             😐️️️️️️😐️️️️️️😐️️️️️️😐️️️️️️😐️️️️️️😐️️️️️️
 
   send-notification-successful:
@@ -105,12 +105,35 @@ jobs:
           format: markdown
           disable_web_page_preview: true
           message: |
-            *🎉 UrCheckin - Check TimeOff - Collector - Init Vault *  🏃‍♂️${{ github.run_number }}
+            *🎉 UrCheckin - Check TimeOff - Collector - Deploy * 🏃‍♂️${{ github.run_number }}
 
             *👤 Committer:* [${{ github.actor }}](https://github.com/${{ github.actor }})
             *📝 Commit message:* ${{ github.event.commits[0].message }}
             *📦 Repository:* ${{ github.repository }}
             *🔍 See changes:* [View changes](https://github.com/${{ github.repository }}/commit/${{github.sha}})
 
-            Successful
+            *Deployment Successful*
             🚀️️️️️️🚀️️️️️️🚀️️️️️️🚀️️️️️️🚀️️️️️️🚀️️️️️️
+
+  send-notification-deploy-failed:
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: ${{ failure() && needs.deploy.result == 'failure' }}
+    steps:
+      - name: Send Telegram Notification
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.GH_ACTION_TELEGRAM_GROUP_DEPLOYMENTS }}
+          token: ${{ secrets.GH_ACTION_TELEGRAM_BOT_TOKEN }}
+          format: markdown
+          disable_web_page_preview: true
+          message: |
+            *❌ UrCheckin - Check TimeOff - Collector - Deploy * 🏃‍♂️${{ github.run_number }}
+
+            *👤 Committer:* [${{ github.actor }}](https://github.com/${{ github.actor }})
+            *📝 Commit message:* ${{ github.event.commits[0].message }}
+            *📦 Repository:* ${{ github.repository }}
+            *🔍 See changes:* [View changes](https://github.com/${{ github.repository }}/commit/${{github.sha}})
+
+            *Deployment Failed*
+            😐️️️️️️😐️️️️️️😐️️️️️️😐️️️️️️😐️️️️️️😐️️️️️️

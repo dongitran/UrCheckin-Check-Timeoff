@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: urcheckin-check-timeoff-collector
+  namespace: urcheckin-check-timeoff
+  labels:
+    app: urcheckin-check-timeoff-collector
+spec:
+  serviceName: urcheckin-check-timeoff-collector
+  replicas: 1
+  selector:
+    matchLabels:
+      app: urcheckin-check-timeoff-collector
+  template:
+    metadata:
+      labels:
+        app: urcheckin-check-timeoff-collector
+      annotations:
+        vault.hashicorp.com/agent-inject: 'true'
+        vault.hashicorp.com/role: 'urcheckin-check-timeoff-collector-dev'
+        vault.hashicorp.com/agent-pre-populate-only: 'true'
+        vault.hashicorp.com/agent-inject-secret-env-config: 'kv/urcheckin-check-timeoff-collector-dev'
+        vault.hashicorp.com/agent-inject-template-env-config: |
+           {{ with secret "kv/urcheckin-check-timeoff-collector-dev" -}}
+              {{- range $key, $value := .Data.data }}
+                export {{ $key }}="{{ $value }}"
+              {{- end }}
+            {{- end }}
+    spec:
+      serviceAccountName: urcheckin-check-timeoff-collector-dev-auth
+      containers:
+        - name: urcheckin-check-timeoff-collector
+          image: ideavn/urcheckin-check-timeoff-collector:{latest}
+          resources:
+            limits:
+              cpu: 500m
+              memory: 600Mi
+            requests:
+              cpu: 50m
+              memory: 256Mi
