@@ -4,22 +4,34 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+function decodeBase64(base64String) {
+  try {
+    return Buffer.from(base64String, "base64").toString("utf-8");
+  } catch (error) {
+    console.error("Error decoding base64:", error);
+    return null;
+  }
+}
+
 function loadExamples() {
-  const examples = [];
-  const envVars = Object.keys(process.env);
-  
-  envVars.forEach(key => {
-    if (key.startsWith('EXAMPLE_')) {
-      try {
-        const example = JSON.parse(process.env[key]);
-        examples.push(example);
-      } catch (error) {
-        console.error(`Error parsing example ${key}:`, error);
-      }
+  try {
+    const base64Examples = process.env.EXAMPLES_BASE64;
+    if (!base64Examples) {
+      console.warn("EXAMPLES_BASE64 environment variable is not set");
+      return [];
     }
-  });
-  
-  return examples;
+
+    const decodedExamples = decodeBase64(base64Examples);
+    if (!decodedExamples) {
+      console.error("Failed to decode EXAMPLES_BASE64");
+      return [];
+    }
+
+    return JSON.parse(decodedExamples);
+  } catch (error) {
+    console.error("Error parsing EXAMPLES:", error);
+    return [];
+  }
 }
 
 function formatExample(input, output) {
@@ -29,9 +41,9 @@ Output: ${JSON.stringify({ results: output }, null, 2)}`;
 
 function constructUserPrompt(messageData) {
   const examples = loadExamples();
-  const examplesText = examples.map((ex) =>
-    formatExample(ex.input, ex.output)
-  ).join("\n\n");
+  const examplesText = examples
+    .map((ex) => formatExample(ex.input, ex.output))
+    .join("\n\n");
 
   return `Analyze the following message and extract time-off information:
 ${JSON.stringify(messageData, null, 2)}
@@ -46,13 +58,19 @@ async function analyzeMessage(messageData) {
     let lastError = null;
 
     while (retries > 0) {
+      let response = 0;
       try {
-        const response = await openai.chat.completions.create({
-          model: "gpt-4",
+        const systemPrompt = decodeBase64(process.env.SYSTEM_PROMPT_BASE64);
+        if (!systemPrompt) {
+          throw new Error("Failed to decode SYSTEM_PROMPT_BASE64");
+        }
+
+        response = await openai.chat.completions.create({
+          model: "gpt-4o",
           messages: [
             {
               role: "system",
-              content: process.env.SYSTEM_PROMPT,
+              content: systemPrompt,
             },
             {
               role: "user",
@@ -85,11 +103,11 @@ async function analyzeMessage(messageData) {
           usage: {
             promptTokens: usage.prompt_tokens,
             completionTokens: usage.completion_tokens,
-            totalTokens: usage.total_tokens
-          }
+            totalTokens: usage.total_tokens,
+          },
         };
-
       } catch (error) {
+        console.log(JSON.stringify(response, null, 2), "responseresponse");
         lastError = error;
         retries--;
         if (retries > 0) {

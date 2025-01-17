@@ -6,7 +6,7 @@ const BATCH_SIZE = parseInt(process.env.BATCH_SIZE) || 10;
 async function processMessages() {
   try {
     const messages = await TimeOffMessage.find(
-      { analyzed: { $exists: false } },
+      { },
       { message: 1, currentDate: 1 }
     ).limit(BATCH_SIZE);
 

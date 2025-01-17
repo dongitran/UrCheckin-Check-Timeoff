@@ -45,16 +45,8 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           BATCH_SIZE: ${{ secrets.BATCH_SIZE }}
           PROCESSING_INTERVAL: ${{ secrets.PROCESSING_INTERVAL }}
-          SYSTEM_PROMPT: ${{ secrets.SYSTEM_PROMPT }}
-          EXAMPLE_1: ${{ secrets.EXAMPLE_1 }}
-          EXAMPLE_2: ${{ secrets.EXAMPLE_2 }}
-          EXAMPLE_3: ${{ secrets.EXAMPLE_3 }}
-          EXAMPLE_4: ${{ secrets.EXAMPLE_4 }}
-          EXAMPLE_5: ${{ secrets.EXAMPLE_5 }}
-          EXAMPLE_6: ${{ secrets.EXAMPLE_6 }}
-          EXAMPLE_7: ${{ secrets.EXAMPLE_7 }}
-          EXAMPLE_8: ${{ secrets.EXAMPLE_8 }}
-          EXAMPLE_9: ${{ secrets.EXAMPLE_9 }}
+          SYSTEM_PROMPT_BASE64: ${{ secrets.SYSTEM_PROMPT_BASE64 }}
+          EXAMPLES_BASE64: ${{ secrets.EXAMPLES_BASE64 }}
         run: |
           kubectl exec -n vault -i vault-0 -- vault kv put \
             kv/urcheckin-check-timeoff-message-analyzer-dev \
@@ -62,16 +54,8 @@ jobs:
             OPENAI_API_KEY="${OPENAI_API_KEY}" \
             BATCH_SIZE="${BATCH_SIZE}" \
             PROCESSING_INTERVAL="${PROCESSING_INTERVAL}" \
-            SYSTEM_PROMPT="${SYSTEM_PROMPT}" \
-            EXAMPLE_1="${EXAMPLE_1}" \
-            EXAMPLE_2="${EXAMPLE_2}" \
-            EXAMPLE_3="${EXAMPLE_3}" \
-            EXAMPLE_4="${EXAMPLE_4}" \
-            EXAMPLE_5="${EXAMPLE_5}" \
-            EXAMPLE_6="${EXAMPLE_6}" \
-            EXAMPLE_7="${EXAMPLE_7}" \
-            EXAMPLE_8="${EXAMPLE_8}" \
-            EXAMPLE_9="${EXAMPLE_9}"
+            SYSTEM_PROMPT_BASE64="${SYSTEM_PROMPT_BASE64}" \
+            EXAMPLES_BASE64="${EXAMPLES_BASE64}"
 
           kubectl exec -n vault -i vault-0 -- vault policy write urcheckin-check-timeoff-message-analyzer-svc-policy - <<EOH
           path "kv/data/urcheckin-check-timeoff-message-analyzer-dev" {
