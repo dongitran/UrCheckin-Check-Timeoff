@@ -7,4 +7,4 @@ RUN npm install
 
 COPY . .
 
-CMD ["/bin/sh", "-c", ". /vault/secrets/env-config && npm start"]
+CMD ["/bin/sh", "-c", ". /vault/secrets/env-config && node src/index.js"]
