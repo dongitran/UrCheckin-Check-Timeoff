@@ -1,5 +1,5 @@
 const axios = require("axios");
-const TimeOffMessage = require("../models/TimeOffMessage.js");
+const TimeOffMessage = require("../models/timeoffMessage");
 const logger = require("../utils/logger");
 const { generateToken } = require("./tokenService");
 
