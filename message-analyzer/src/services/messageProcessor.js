@@ -8,7 +8,7 @@ async function processMessages() {
   try {
     const messages = await TimeOffMessage.find(
       { analyzed: { $exists: false } },
-      { message: 1, currentDate: 1 }
+      { userId: 1, message: 1, currentDate: 1 }
     ).limit(BATCH_SIZE);
 
     if (messages.length === 0) {
