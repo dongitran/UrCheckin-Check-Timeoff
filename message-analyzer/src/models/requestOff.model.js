@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 const requestOffSchema = new mongoose.Schema(
   {
@@ -29,4 +29,4 @@ const requestOffSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model("RequestOff", requestOffSchema);
+module.exports = mongoose.model("RequestOff", requestOffSchema);

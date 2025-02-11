@@ -1,6 +1,9 @@
 const mongoose = require("mongoose");
 
 const timeOffMessageSchema = new mongoose.Schema({
+  messageId: {
+    type: String,
+  },
   userId: {
     type: Number,
     required: true,
