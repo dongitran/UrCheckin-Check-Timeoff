@@ -1,17 +1,17 @@
 {
-  "name": "urcheckin-check-timeoff",
+  "name": "urcheckin-check-timeoff-collector",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Service to collect timeoff messages from Telegram",
+  "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
-    "dotenv": "^16.4.7",
-    "mongoose": "^8.9.2",
-    "telegram": "^2.26.16"
+    "axios": "^1.6.7",
+    "dotenv": "^16.4.1",
+    "mongoose": "^8.1.1",
+    "jsonwebtoken": "^9.0.2",
+    "winston": "^3.11.0",
+    "winston-mongodb": "^5.1.1"
   }
 }
