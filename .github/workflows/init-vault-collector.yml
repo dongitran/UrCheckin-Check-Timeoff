@@ -41,21 +41,21 @@ jobs:
 
       - name: Apply Kubernetes deployment
         env:
-          API_ID: ${{ secrets.API_ID }}
-          API_HASH: ${{ secrets.API_HASH }}
-          SESSION_STRING: ${{ secrets.SESSION_STRING }}
-          TELEGRAM_TIME_OFF_GROUP_ID: ${{ secrets.TELEGRAM_TIME_OFF_GROUP_ID }}
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
-          TELEGRAM_EXCLUDED_GROUPS: ${{ secrets.TELEGRAM_EXCLUDED_GROUPS }}
+          API_URL: ${{ secrets.API_URL }}
+          USER_ID: ${{ secrets.USER_ID }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          POLL_INTERVAL: ${{ secrets.POLL_INTERVAL }}
         run: |
           kubectl exec -n vault -i vault-0 -- vault kv put \
             kv/urcheckin-check-timeoff-collector-dev \
-            API_ID="${API_ID}" \
-            API_HASH="${API_HASH}" \
-            SESSION_STRING="${SESSION_STRING}" \
-            TELEGRAM_TIME_OFF_GROUP_ID="${TELEGRAM_TIME_OFF_GROUP_ID}" \
             MONGODB_URI="${MONGODB_URI}" \
-            TELEGRAM_EXCLUDED_GROUPS="${TELEGRAM_EXCLUDED_GROUPS}"
+            API_URL="${API_URL}" \
+            USER_ID="${USER_ID}" \
+            CHAT_ID="${CHAT_ID}" \
+            JWT_SECRET="${JWT_SECRET}" \
+            POLL_INTERVAL="${POLL_INTERVAL}"
 
           kubectl exec -n vault -i vault-0 -- vault policy write urcheckin-check-timeoff-collector-svc-policy - <<EOH
           path "kv/data/urcheckin-check-timeoff-collector-dev" {
