@@ -11,7 +11,7 @@ class MessageCollector {
   async initialize() {
     const lastMessage = await TimeOffMessage.findOne().sort({ createdAt: -1 });
     if (lastMessage) {
-      this.lastProcessedId = lastMessage._id;
+      this.lastProcessedId = lastMessage.messageId;
     }
   }
 
@@ -42,6 +42,7 @@ class MessageCollector {
       for (const message of messages) {
         if (!this.lastProcessedId || message._id > this.lastProcessedId) {
           await TimeOffMessage.create({
+            messageId: message._id,
             userId: message.fromId,
             username: message.fromUserName,
             message: message.content,
