@@ -53,6 +53,8 @@ class MessageCollector {
         }
       }
 
+      console.log(messages, "messagesmessages");
+      console.log(messages.length, "messagesmessageslengthlength");
       if (messages.length > 0) {
         this.lastProcessedId = messages[0]._id;
       }
