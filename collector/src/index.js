@@ -34,19 +34,3 @@ const startCollector = async () => {
 };
 
 startCollector();
-
-process.on("uncaughtException", (error) => {
-  logger.error("Uncaught exception:", {
-    error: error.message,
-    stack: error.stack,
-  });
-  process.exit(1);
-});
-
-process.on("unhandledRejection", (error) => {
-  logger.error("Unhandled rejection:", {
-    error: error.message,
-    stack: error.stack,
-  });
-  process.exit(1);
-});
