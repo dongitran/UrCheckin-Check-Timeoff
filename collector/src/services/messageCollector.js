@@ -59,6 +59,7 @@ class MessageCollector {
         this.lastProcessedId = messages[0]._id;
       }
     } catch (error) {
+      console.log(error, "errorerror");
       logger.error("Error processing messages:", {
         error: error.message,
         stack: error.stack,
