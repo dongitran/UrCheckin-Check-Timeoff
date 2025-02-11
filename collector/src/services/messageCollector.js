@@ -41,7 +41,10 @@ class MessageCollector {
   async processMessages(messages) {
     try {
       for (const message of messages) {
-        if (!this.lastProcessedId || message._id > this.lastProcessedId) {
+        if (
+          !this.lastProcessedId ||
+          (message._id > this.lastProcessedId && message.content)
+        ) {
           await TimeOffMessage.create({
             messageId: message._id,
             userId: message.fromId,
@@ -53,10 +56,13 @@ class MessageCollector {
         }
       }
 
+      console.log(messages, "messagesmessages");
+      console.log(messages.length, "messagesmessageslengthlength");
       if (messages.length > 0) {
         this.lastProcessedId = messages[0]._id;
       }
     } catch (error) {
+      console.log(error, "errorerror");
       logger.error("Error processing messages:", {
         error: error.message,
         stack: error.stack,
