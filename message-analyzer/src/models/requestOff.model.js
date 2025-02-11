@@ -29,4 +29,4 @@ const requestOffSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model("RequestOff", requestOffSchema);
+module.exports = mongoose.model("RequestOff", requestOffSchema);
