@@ -21,7 +21,7 @@ spec:
         vault.hashicorp.com/agent-pre-populate-only: 'true'
         vault.hashicorp.com/agent-inject-secret-env-config: 'kv/urcheckin-check-timeoff-collector-dev'
         vault.hashicorp.com/agent-inject-template-env-config: |
-           {{ with secret "kv/urcheckin-check-timeoff-collector-dev" -}}
+            {{ with secret "kv/urcheckin-check-timeoff-collector-dev" -}}
               {{- range $key, $value := .Data.data }}
                 export {{ $key }}="{{ $value }}"
               {{- end }}
