@@ -1,4 +1,5 @@
 const TimeOffMessage = require("../models/timeoffMessage");
+const RequestOff = require("../models/requestOff.model");
 const { analyzeMessage } = require("./openaiService");
 
 const BATCH_SIZE = parseInt(process.env.BATCH_SIZE) || 10;
@@ -31,6 +32,17 @@ async function processMessages() {
         message.analyzedAt = new Date();
         message.tokenUsage = result.usage;
         await message.save();
+
+        for (const result of message.analyzedResult) {
+          await RequestOff.create({
+            userId: String(message.userId),
+            dateOff: `${result.date}T00:00:00.000+00:00`,
+            requestId: message?._id,
+            timeOffType: result.type,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+        }
 
         console.log(
           `Analyzed message ${new Date(message.currentDate).toISOString()}-${
