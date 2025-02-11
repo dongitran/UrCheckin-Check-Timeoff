@@ -29,7 +29,7 @@ const timeOffMessageSchema = new mongoose.Schema({
       },
       type: {
         type: String,
-        enum: ["full-day", "morning", "afternoon"],
+        enum: ["FULL_DAY", "MORNING", "AFTERNOON"],
       },
     },
   ],
