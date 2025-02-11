@@ -42,8 +42,8 @@ class MessageCollector {
     try {
       for (const message of messages) {
         if (
-          !this.lastProcessedId ||
-          (message._id > this.lastProcessedId && message.content)
+          (!this.lastProcessedId || message._id > this.lastProcessedId) &&
+          message.content
         ) {
           await TimeOffMessage.create({
             messageId: message._id,
