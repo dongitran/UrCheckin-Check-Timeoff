@@ -10,6 +10,7 @@ class MessageCollector {
 
   async initialize() {
     const lastMessage = await TimeOffMessage.findOne().sort({ createdAt: -1 });
+    console.log(lastMessage, "lastMessageLEngth");
     if (lastMessage) {
       this.lastProcessedId = lastMessage.messageId;
     }
