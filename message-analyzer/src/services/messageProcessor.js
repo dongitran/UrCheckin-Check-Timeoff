@@ -1,6 +1,12 @@
+const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc");
+const timezone = require("dayjs/plugin/timezone");
 const TimeOffMessage = require("../models/timeoffMessage");
 const RequestOff = require("../models/requestOff.model");
 const { analyzeMessage } = require("./openaiService");
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const BATCH_SIZE = parseInt(process.env.BATCH_SIZE) || 10;
 
@@ -21,7 +27,9 @@ async function processMessages() {
       try {
         const messageData = {
           message: message.message,
-          currentDate: message.currentDate,
+          currentDate:
+            dayjs(date).tz("Asia/Ho_Chi_Minh").format("YYYY-MM-DD") +
+            "T07:00:00",
         };
 
         const result = await analyzeMessage(messageData);
