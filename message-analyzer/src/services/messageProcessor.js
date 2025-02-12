@@ -28,7 +28,7 @@ async function processMessages() {
         const messageData = {
           message: message.message,
           currentDate:
-            dayjs(date).tz("Asia/Ho_Chi_Minh").format("YYYY-MM-DD") +
+            dayjs(message.currentDate).tz("Asia/Ho_Chi_Minh").format("YYYY-MM-DD") +
             "T07:00:00",
         };
 
