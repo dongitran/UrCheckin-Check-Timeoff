@@ -1,4 +1,5 @@
 const axios = require("axios");
+const { parse, stringify } = require("flatted");
 const TimeOffMessage = require("../models/timeoffMessage");
 const logger = require("../utils/logger");
 const { generateToken } = require("./tokenService");
@@ -29,9 +30,10 @@ class MessageCollector {
         await this.processMessages(response.data.data);
       }
     } catch (error) {
+      console.log(error, "errorFetchMessage");
       logger.error("Error fetching messages:", {
         error: error.message,
-        stack: error.stack,
+        stack: parse(stringify(error)),
       });
       throw error;
     }
