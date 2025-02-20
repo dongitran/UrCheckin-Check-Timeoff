@@ -1,4 +1,5 @@
 const axios = require("axios");
+const { parse, stringify } = require("flatted");
 const TimeOffMessage = require("../models/timeoffMessage");
 const logger = require("../utils/logger");
 const { generateToken } = require("./tokenService");
@@ -11,7 +12,7 @@ class MessageCollector {
   async initialize() {
     const lastMessage = await TimeOffMessage.findOne().sort({ createdAt: -1 });
     if (lastMessage) {
-      this.lastProcessedId = lastMessage._id;
+      this.lastProcessedId = lastMessage.messageId;
     }
   }
 
@@ -29,9 +30,10 @@ class MessageCollector {
         await this.processMessages(response.data.data);
       }
     } catch (error) {
+      console.log(error, "errorFetchMessage");
       logger.error("Error fetching messages:", {
         error: error.message,
-        stack: error.stack,
+        stack: parse(stringify(error)),
       });
       throw error;
     }
@@ -40,8 +42,12 @@ class MessageCollector {
   async processMessages(messages) {
     try {
       for (const message of messages) {
-        if (!this.lastProcessedId || message._id > this.lastProcessedId) {
+        if (
+          (!this.lastProcessedId || message._id > this.lastProcessedId) &&
+          message.content
+        ) {
           await TimeOffMessage.create({
+            messageId: message._id,
             userId: message.fromId,
             username: message.fromUserName,
             message: message.content,
@@ -55,6 +61,7 @@ class MessageCollector {
         this.lastProcessedId = messages[0]._id;
       }
     } catch (error) {
+      console.log(error, "errorerror");
       logger.error("Error processing messages:", {
         error: error.message,
         stack: error.stack,

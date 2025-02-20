@@ -17,7 +17,7 @@ jobs:
           format: markdown
           disable_web_page_preview: true
           message: |
-            *🚀 UrCheckin - Check TimeOff - Collector - Deploy * 🏃‍♂️${{ github.run_number }}
+            *🚀 UrCheckin - Check TimeOff - Message Analyzer - Deploy * 🏃‍♂️${{ github.run_number }}
 
             *👤 Committer:* [${{ github.actor }}](https://github.com/${{ github.actor }})
             *📝 Commit message:* ${{ github.event.commits[0].message }}
@@ -82,7 +82,7 @@ jobs:
           format: markdown
           disable_web_page_preview: true
           message: |
-            *❌ UrCheckin - Check TimeOff - Collector - Deploy * 🏃‍♂️${{ github.run_number }}
+            *❌ UrCheckin - Check TimeOff - Message Analyzer - Deploy * 🏃‍♂️${{ github.run_number }}
 
             *👤 Committer:* [${{ github.actor }}](https://github.com/${{ github.actor }})
             *📝 Commit message:* ${{ github.event.commits[0].message }}
@@ -105,7 +105,7 @@ jobs:
           format: markdown
           disable_web_page_preview: true
           message: |
-            *🎉 UrCheckin - Check TimeOff - Collector - Deploy * 🏃‍♂️${{ github.run_number }}
+            *🎉 UrCheckin - Check TimeOff - Message Analyzer - Deploy * 🏃‍♂️${{ github.run_number }}
 
             *👤 Committer:* [${{ github.actor }}](https://github.com/${{ github.actor }})
             *📝 Commit message:* ${{ github.event.commits[0].message }}
@@ -128,7 +128,7 @@ jobs:
           format: markdown
           disable_web_page_preview: true
           message: |
-            *❌ UrCheckin - Check TimeOff - Collector - Deploy * 🏃‍♂️${{ github.run_number }}
+            *❌ UrCheckin - Check TimeOff - Message Analyzer - Deploy * 🏃‍♂️${{ github.run_number }}
 
             *👤 Committer:* [${{ github.actor }}](https://github.com/${{ github.actor }})
             *📝 Commit message:* ${{ github.event.commits[0].message }}
